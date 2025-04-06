@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ML Practice Platform</title>
+    <title>Sigmoid - ML Learning Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
@@ -80,12 +80,37 @@
         .CodeMirror-activeline-background {
             background: #2d2d2d !important;
         }
+        /* Logo and branding */
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff !important;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #6e48aa 0%, #9d50bb 100%) !important;
+        }
+        .navbar-brand span {
+            color: #ffd700;
+        }
+        /* Problem difficulty badges */
+        .badge.bg-easy {
+            background-color: #28a745 !important;
+        }
+        .badge.bg-medium {
+            background-color: #ffc107 !important;
+            color: #000;
+        }
+        .badge.bg-hard {
+            background-color: #dc3545 !important;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark bg-dark">
+    <nav class="navbar navbar-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">ML Practice Platform</a>
+            <a class="navbar-brand" href="#">
+                <span>Sigmoid</span> - Learn ML by Doing
+            </a>
         </div>
     </nav>
 
@@ -104,7 +129,7 @@
                 <div id="problem-details" style="display: none;">
                     <h3 id="problem-title"></h3>
                     <div class="mb-3">
-                        <span class="badge bg-primary" id="problem-difficulty"></span>
+                        <span class="badge" id="problem-difficulty"></span>
                         <span class="badge bg-secondary" id="problem-category"></span>
                     </div>
                     <div class="card mb-3">
@@ -182,7 +207,10 @@
                     div.className = 'list-group-item problem-card';
                     div.innerHTML = `
                         <h5 class="mb-1">${problem.title}</h5>
-                        <small class="text-muted">${problem.difficulty} • ${problem.category}</small>
+                        <small class="text-muted">
+                            <span class="badge bg-${problem.difficulty.toLowerCase()}">${problem.difficulty}</span>
+                            ${problem.category}
+                        </small>
                     `;
                     div.onclick = () => loadProblem(problem.id);
                     problemsList.appendChild(div);
@@ -200,7 +228,9 @@
                 
                 document.getElementById('problem-details').style.display = 'block';
                 document.getElementById('problem-title').textContent = currentProblem.title;
-                document.getElementById('problem-difficulty').textContent = currentProblem.difficulty;
+                const difficultyBadge = document.getElementById('problem-difficulty');
+                difficultyBadge.textContent = currentProblem.difficulty;
+                difficultyBadge.className = `badge bg-${currentProblem.difficulty.toLowerCase()}`;
                 document.getElementById('problem-category').textContent = currentProblem.category;
                 document.getElementById('problem-description').textContent = currentProblem.description;
                 editor.setValue(currentProblem.initial_code);
