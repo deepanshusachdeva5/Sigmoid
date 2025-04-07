@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sigmoid - Login</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff !important;
+        }
+        .navbar-brand span {
+            color: #ffd700;
+        }
+        .auth-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .auth-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .auth-title {
+            color: #fff;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        .form-control {
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 0.75rem 1rem;
+        }
+        .form-control:focus {
+            background-color: #2a2a2a;
+            border-color: #6e48aa;
+            color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(110, 72, 170, 0.25);
+        }
+        .form-label {
+            color: #aaa;
+            margin-bottom: 0.5rem;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4a3880 0%, #6e48aa 100%);
+            border: none;
+            padding: 0.75rem 2rem;
+            font-weight: 500;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(110, 72, 170, 0.3);
+        }
+        .auth-switch {
+            text-align: center;
+            margin-top: 1rem;
+            color: #888;
+        }
+        .auth-switch a {
+            color: #6e48aa;
+            text-decoration: none;
+        }
+        .auth-switch a:hover {
+            text-decoration: underline;
+        }
+        .alert {
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .alert-danger {
+            background-color: rgba(127, 29, 29, 0.2);
+            border-color: #7f1d1d;
+            color: #ff9999;
+        }
+        .alert-success {
+            background-color: rgba(27, 94, 32, 0.2);
+            border-color: #1b5e20;
+            color: #98fb98;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="problems.html">
+                <span>Sigmoid</span> - Learn ML by Doing
+            </a>
+        </div>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2 class="auth-title">Login</h2>
+                <div class="alert alert-danger" id="login-error"></div>
+                <div class="mb-3">
+                    <label for="login-username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="login-username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="login-password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="login-password" required>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="login()">Login</button>
+                <div class="auth-switch">
+                    Don't have an account? <a href="#" onclick="toggleForms('register')">Register</a>
+                </div>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" style="display: none;">
+                <h2 class="auth-title">Register</h2>
+                <div class="alert alert-danger" id="register-error"></div>
+                <div class="alert alert-success" id="register-success"></div>
+                <div class="mb-3">
+                    <label for="register-username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="register-username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="register-email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="register-email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="register-password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="register-password" required>
+                </div>
+                <div class="mb-3">
+                    <label for="register-confirm-password" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="register-confirm-password" required>
+                </div>
+                <button type="button" class="btn btn-primary" onclick="register()">Register</button>
+                <div class="auth-switch">
+                    Already have an account? <a href="#" onclick="toggleForms('login')">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between login and register forms
+        function toggleForms(form) {
+            document.getElementById('login-form').style.display = form === 'login' ? 'block' : 'none';
+            document.getElementById('register-form').style.display = form === 'register' ? 'block' : 'none';
+            // Clear any existing alerts
+            document.querySelectorAll('.alert').forEach(alert => alert.style.display = 'none');
+        }
+
+        // Login function
+        async function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            const errorDiv = document.getElementById('login-error');
+
+            try {
+                const response = await fetch('http://localhost:8000/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Redirect to problems page on successful login
+                    window.location.href = 'problems.html';
+                } else {
+                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Register function
+        async function register() {
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-confirm-password').value;
+            const errorDiv = document.getElementById('register-error');
+            const successDiv = document.getElementById('register-success');
+
+            // Clear previous messages
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Validate passwords match
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Passwords do not match';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8000/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = 'Registration successful! You can now login.';
+                    successDiv.style.display = 'block';
+                    // Clear form
+                    document.getElementById('register-username').value = '';
+                    document.getElementById('register-email').value = '';
+                    document.getElementById('register-password').value = '';
+                    document.getElementById('register-confirm-password').value = '';
+                    // Switch to login form after 2 seconds
+                    setTimeout(() => toggleForms('login'), 2000);
+                } else {
+                    errorDiv.textContent = data.error || 'Registration failed';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'An error occurred. Please try again.';
+                errorDiv.style.display = 'block';
+            }
+        }
+
+        // Add enter key support for forms
+        document.getElementById('login-password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+        document.getElementById('register-confirm-password').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') register();
+        });
+    </script>
+</body>
+</html> 

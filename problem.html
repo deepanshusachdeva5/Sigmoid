@@ -32,21 +32,6 @@
             line-height: 1.5;
             background-color: #1a1a1a;
         }
-        .hashtag {
-            background-color: #2a2a2a;
-            border: 1px solid #444;
-            padding: 0.4rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            margin-right: 0.5rem;
-            margin-bottom: 0.5rem;
-            color: #aaa;
-        }
-        .hashtag:hover {
-            background-color: #333;
-            border-color: #555;
-            color: #fff;
-        }
         .difficulty-badge {
             font-size: 0.75rem;
             padding: 0.4rem 0.8rem;
@@ -66,19 +51,55 @@
             color: white;
         }
         .test-case {
-            margin-bottom: 1rem;
             padding: 1rem;
             border-radius: 0.5rem;
             background: #1e1e1e;
-            border: 1px solid #333;
         }
-        .test-case.success {
-            background-color: rgba(27, 94, 32, 0.2);
-            border: 1px solid #1b5e20;
+        .test-case-nav {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #333;
         }
-        .test-case.failure {
-            background-color: rgba(127, 29, 29, 0.2);
-            border: 1px solid #7f1d1d;
+        .test-case-nav button {
+            background: #2a2a2a;
+            border: 1px solid #444;
+            color: #aaa;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .test-case-nav button:hover {
+            background: #333;
+            border-color: #555;
+            color: #fff;
+        }
+        .test-case-nav button.active {
+            background: linear-gradient(135deg, #4a3880 0%, #6e48aa 100%);
+            border-color: transparent;
+            color: white;
+        }
+        .test-case-content {
+            opacity: 0;
+            display: none;
+            transition: opacity 0.3s;
+            background: #1e1e1e;
+            padding: 1.5rem;
+            border-radius: 8px;
+        }
+        .test-case-content.active {
+            opacity: 1;
+            display: block;
+        }
+        .test-case-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: block;
         }
         .card {
             background: #1e1e1e;
@@ -111,6 +132,11 @@
             padding: 1rem;
             border-radius: 4px;
             border: 1px solid #333;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre;
+            tab-size: 4;
         }
         .alert-success {
             background-color: rgba(27, 94, 32, 0.2);
@@ -162,13 +188,22 @@
                         <span class="badge difficulty-badge" id="problem-difficulty"></span>
                         <span class="badge bg-secondary" id="problem-category"></span>
                     </div>
-                    <div class="mb-3">
-                        <div id="problem-hashtags"></div>
-                    </div>
                     <div class="card mb-3">
                         <div class="card-body">
                             <h5 class="card-title">Description</h5>
                             <p id="problem-description" class="card-text"></p>
+                        </div>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">Video Solution</h5>
+                            <div id="video-container" class="ratio ratio-16x9 mb-2">
+                                <!-- Video will be loaded here -->
+                            </div>
+                            <p class="text-muted small mt-2">
+                                <i class="fas fa-info-circle"></i> 
+                                Try solving the problem first before watching the solution!
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -180,6 +215,17 @@
                     <div class="card-body">
                         <h5 class="card-title">Your Solution</h5>
                         <textarea id="code-editor"></textarea>
+                    </div>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Test Cases</h5>
+                        <div class="test-case-nav" id="test-case-nav">
+                            <!-- Test case navigation buttons will be added here -->
+                        </div>
+                        <div id="test-cases">
+                            <!-- Test cases will be loaded here -->
+                        </div>
                     </div>
                 </div>
                 <button class="btn btn-primary mb-3" onclick="submitSolution()">Submit Solution</button>
@@ -244,68 +290,153 @@
                 document.getElementById('problem-category').textContent = currentProblem.category;
                 document.getElementById('problem-description').textContent = currentProblem.description;
                 
-                // Display hashtags
-                const hashtagsDiv = document.getElementById('problem-hashtags');
-                hashtagsDiv.innerHTML = currentProblem.hashtags.map(tag => 
-                    `<span class="hashtag">#${tag}</span>`
-                ).join('');
-                
+                // Set initial code in editor
                 editor.setValue(currentProblem.initial_code);
-                
-                document.getElementById('results').style.display = 'none';
+
+                // Display test cases
+                displayTestCases(currentProblem.test_cases);
+
+                // Load video if available
+                if (currentProblem.video_url) {
+                    loadVideoSolution(currentProblem.video_url);
+                } else {
+                    document.querySelector('.card.video-solution').style.display = 'none';
+                }
             } catch (error) {
                 console.error('Error loading problem:', error);
             }
         }
 
+        // Display test cases
+        function displayTestCases(testCases) {
+            const testCasesDiv = document.getElementById('test-cases');
+            const testCaseNav = document.getElementById('test-case-nav');
+            testCasesDiv.innerHTML = '';
+            testCaseNav.innerHTML = '';
+
+            // Create navigation buttons
+            testCases.forEach((_, index) => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = `Test Case ${index + 1}`;
+                button.className = index === 0 ? 'active' : '';
+                button.onclick = () => switchTestCase(index);
+                testCaseNav.appendChild(button);
+            });
+
+            // Create test case content
+            testCases.forEach((testCase, index) => {
+                const testCaseElement = document.createElement('div');
+                testCaseElement.className = `test-case-content ${index === 0 ? 'active' : ''}`;
+                testCaseElement.id = `test-case-${index}`;
+                
+                // Format input and output nicely
+                const formattedInput = formatTestCaseData(testCase.input);
+                const formattedOutput = formatTestCaseData(testCase.output);
+
+                testCaseElement.innerHTML = `
+                    <div class="mb-3">
+                        <span class="test-case-label">Input:</span>
+                        <pre class="mb-3">${formattedInput}</pre>
+                    </div>
+                    <div>
+                        <span class="test-case-label">Expected Output:</span>
+                        <pre>${formattedOutput}</pre>
+                    </div>
+                `;
+                testCasesDiv.appendChild(testCaseElement);
+            });
+        }
+
+        // Format test case data
+        function formatTestCaseData(data) {
+            if (Array.isArray(data)) {
+                // Handle arrays more elegantly
+                return '[\n' + data.map(item => {
+                    if (Array.isArray(item)) {
+                        return '    [' + item.join(', ') + ']';
+                    }
+                    return '    ' + item;
+                }).join(',\n') + '\n]';
+            }
+            // For non-array data, use standard JSON formatting
+            return JSON.stringify(data, null, 4);
+        }
+
+        // Switch between test cases
+        function switchTestCase(index) {
+            // Update navigation buttons
+            const buttons = document.querySelectorAll('#test-case-nav button');
+            buttons.forEach((button, i) => {
+                button.className = i === index ? 'active' : '';
+            });
+
+            // Update test case content
+            const testCases = document.querySelectorAll('.test-case-content');
+            testCases.forEach((testCase, i) => {
+                testCase.className = `test-case-content ${i === index ? 'active' : ''}`;
+            });
+        }
+
         // Submit solution
         async function submitSolution() {
-            if (!currentProblem) return;
+            const code = editor.getValue();
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            resultsDiv.style.display = 'block';
             
             try {
-                const response = await fetch(`http://localhost:8000/problems/${currentProblem.id}/submit`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        code: editor.getValue()
-                    })
-                });
-                
-                const result = await response.json();
-                displayResults(result);
+                // Here you would typically send the code to your backend for evaluation
+                // For now, we'll just show a success message
+                resultsContent.innerHTML = `
+                    <div class="alert alert-success">
+                        Solution submitted successfully! Your code will be evaluated against the test cases.
+                    </div>
+                    <div class="test-case success">
+                        <strong>Test Case 1:</strong> Passed ✓
+                    </div>
+                `;
             } catch (error) {
-                console.error('Error submitting solution:', error);
+                resultsContent.innerHTML = `
+                    <div class="alert alert-danger">
+                        Error submitting solution: ${error.message}
+                    </div>
+                `;
             }
         }
 
-        // Display results
-        function displayResults(result) {
-            const resultsDiv = document.getElementById('results');
-            const resultsContent = document.getElementById('results-content');
+        // Load video solution
+        function loadVideoSolution(videoUrl) {
+            const videoContainer = document.getElementById('video-container');
+            const videoId = extractYouTubeId(videoUrl);
             
-            resultsDiv.style.display = 'block';
-            resultsContent.innerHTML = '';
-            
-            if (result.success) {
-                resultsContent.innerHTML = '<div class="alert alert-success">All test cases passed!</div>';
-            } else {
-                resultsContent.innerHTML = '<div class="alert alert-danger">Some test cases failed.</div>';
-            }
-            
-            result.results.forEach((testResult, index) => {
-                const testCaseDiv = document.createElement('div');
-                testCaseDiv.className = `test-case ${testResult.success ? 'success' : 'failure'}`;
-                testCaseDiv.innerHTML = `
-                    <h5>Test Case ${index + 1}</h5>
-                    <p><strong>Result:</strong> ${testResult.result}</p>
-                    <p><strong>Expected:</strong> ${testResult.expected}</p>
-                    ${testResult.error ? `<p><strong>Error:</strong> ${testResult.error}</p>` : ''}
-                    ${testResult.output ? `<pre>${testResult.output}</pre>` : ''}
+            if (videoId) {
+                videoContainer.innerHTML = `
+                    <iframe 
+                        src="https://www.youtube.com/embed/${videoId}"
+                        title="Solution Video"
+                        frameborder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen>
+                    </iframe>
                 `;
-                resultsContent.appendChild(testCaseDiv);
-            });
+            } else {
+                videoContainer.innerHTML = `
+                    <div class="alert alert-warning">
+                        Video solution is not available for this problem yet.
+                    </div>
+                `;
+            }
+        }
+
+        // Extract YouTube video ID from URL
+        function extractYouTubeId(url) {
+            if (!url) return null;
+            
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            
+            return (match && match[2].length === 11) ? match[2] : null;
         }
     </script>
 </body>

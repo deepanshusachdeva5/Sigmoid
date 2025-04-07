@@ -191,6 +191,27 @@
         .text-muted {
             color: #888 !important;
         }
+        .navbar-user {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .navbar-username {
+            color: #aaa;
+        }
+        .btn-logout {
+            background: transparent;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #555;
+        }
     </style>
 </head>
 <body>
@@ -199,6 +220,10 @@
             <a class="navbar-brand" href="problems.html">
                 <span>Sigmoid</span> - Learn ML by Doing
             </a>
+            <div class="navbar-user">
+                <span class="navbar-username" id="username"></span>
+                <button class="btn-logout" onclick="logout()">Logout</button>
+            </div>
         </div>
     </nav>
 
@@ -251,6 +276,39 @@
         let selectedTags = new Set();
         let selectedModules = new Set();
         let selectedDifficulties = new Set(['Easy', 'Medium', 'Hard']);
+
+        // Check authentication status
+        async function checkAuth() {
+            try {
+                const response = await fetch('http://localhost:8000/api/auth/status', {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (!data.authenticated) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                
+                document.getElementById('username').textContent = data.user.username;
+            } catch (error) {
+                console.error('Error checking auth status:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Logout function
+        async function logout() {
+            try {
+                await fetch('http://localhost:8000/api/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Error logging out:', error);
+            }
+        }
 
         // Load problems
         async function loadProblems() {
@@ -573,8 +631,11 @@
             };
         });
 
-        // Load problems when page loads
-        loadProblems();
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadProblems();
+        });
     </script>
 </body>
 </html> 
